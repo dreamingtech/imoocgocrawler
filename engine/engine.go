@@ -33,7 +33,7 @@ func Run(seeds ...Request) {
 
 		// 打印解析结果中的 Items
 		for _, item := range parseResult.Items {
-			log.Printf("Got item: %v", item)
+			log.Printf("Got item: %s", item)
 		}
 	}
 }
