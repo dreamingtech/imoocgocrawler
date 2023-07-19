@@ -27,7 +27,7 @@ func ParseCity(html []byte) engine.ParseResult {
 			Url: string(m[1]),
 			// nil 可以编译通过, 但不能调用, 所以这里不能写成 nil, 而是定义一个空的解析函数
 			// ParserFunc: nil,
-			ParserFunc: engine.NilParser,
+			ParserFunc: ParseProfile,
 		})
 	}
 	return parsedResult
