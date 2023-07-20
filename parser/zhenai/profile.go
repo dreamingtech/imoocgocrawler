@@ -30,9 +30,11 @@ func extractString(contents []byte, re *regexp.Regexp) string {
 	}
 }
 
-func ParseProfile(html []byte) engine.ParseResult {
+// ParseProfile 解析用户信息
+func ParseProfile(html []byte, name string) engine.ParseResult {
 
 	profile := model.Profile{}
+	profile.Name = name
 
 	if age, err := strconv.Atoi(extractString(html, ageRe)); err == nil {
 		profile.Age = age

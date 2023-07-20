@@ -11,7 +11,7 @@ func TestParseProfile(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	result := ParseProfile(html)
+	result := ParseProfile(html, "安静的雪")
 	if len(result.Items) != 1 {
 		t.Errorf("Items should contain 1 element; but was %v", result.Items)
 	}
