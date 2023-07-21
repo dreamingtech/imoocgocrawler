@@ -56,11 +56,14 @@ func (engine *ConcurrentEngine) Run(seeds ...Request) {
 		因为 Submit 变成了协程, 即异步的方式执行, 就不会再出现循环等待的问题了
 	*/
 
+	// 添加计数器, 记录提取到的 item 的数量
+	itemCount := 0
 	// 从 Out Channel 中取数据
 	for {
 		result := <-out
 		for _, item := range result.Items {
-			log.Printf("Got item: %v", item)
+			log.Printf("Got item: #%d: %v", itemCount, item)
+			itemCount++
 		}
 
 		// 把 result 中的请求提交给 Scheduler

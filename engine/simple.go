@@ -28,6 +28,8 @@ func (engine SimpleEngine) Run(seeds ...Request) {
 		requests = append(requests, r)
 	}
 
+	itemCount := 0
+
 	for len(requests) > 0 {
 		// 取出来第一个 Request
 		r := requests[0]
@@ -43,7 +45,8 @@ func (engine SimpleEngine) Run(seeds ...Request) {
 
 		// 打印解析结果中的 Items
 		for _, item := range parseResult.Items {
-			log.Printf("Got item: %v", item)
+			log.Printf("Got item: #%d: %v", itemCount, item)
+			itemCount++
 		}
 	}
 }
