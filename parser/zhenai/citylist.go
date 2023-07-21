@@ -15,7 +15,7 @@ func ParseCityList(html []byte) engine.ParseResult {
 	parsedResult := engine.ParseResult{}
 
 	// todo delete 限制城市数量, 便于测试
-	limit := 10
+	// limit := 10
 
 	for _, m := range matches {
 
@@ -33,10 +33,10 @@ func ParseCityList(html []byte) engine.ParseResult {
 			ParserFunc: ParseCity,
 		})
 
-		limit--
-		if limit <= 0 {
-			break
-		}
+		// limit--
+		// if limit <= 0 {
+		// 	break
+		// }
 	}
 	return parsedResult
 

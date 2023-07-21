@@ -5,6 +5,8 @@ import (
 	"log"
 )
 
+type SimpleEngine struct{}
+
 func worker(r Request) (ParseResult, error) {
 
 	log.Printf("Fetching url: %s", r.Url)
@@ -20,7 +22,7 @@ func worker(r Request) (ParseResult, error) {
 	return r.ParserFunc(body), nil
 }
 
-func Run(seeds ...Request) {
+func (engine SimpleEngine) Run(seeds ...Request) {
 	var requests []Request
 	for _, r := range seeds {
 		requests = append(requests, r)
