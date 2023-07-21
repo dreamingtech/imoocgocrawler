@@ -27,7 +27,21 @@ func runConcurrentEngine() {
 	})
 }
 
+func runQueuedSchedulerConcurrentEngine() {
+	// 因为是指针接收者, 必须要定义一个变量, 只有变量才可以取地址
+	concurrentEngine := engine.ConcurrentEngine{
+		Scheduler: &scheduler.QueuedScheduler{},
+		// 设置运行的 worker 数量
+		WorkerCount: 10,
+	}
+	concurrentEngine.Run(engine.Request{
+		Url:        "http://localhost:8080/mock/www.zhenai.com/zhenghun",
+		ParserFunc: parser.ParseCityList,
+	})
+}
+
 func main() {
 	// runSimpleEngine()
-	runConcurrentEngine()
+	// runConcurrentEngine()
+	runQueuedSchedulerConcurrentEngine()
 }

@@ -19,22 +19,30 @@ type iScheduler interface {
 	// 为了能把外部创建的队列添加到 Scheduler 中, 要添加一个方法,
 	// 通过此方法把外部创建的 channel 赋值给 Scheduler
 	ConfigureWorkerChan(chan Request)
+	WorkerReady(chan Request)
+	Run()
 }
 
 func (engine *ConcurrentEngine) Run(seeds ...Request) {
 
 	// 5. 所有的 Worker 共用一个输入队列, 一个输出队列
 	// Worker 从 in 中取 Request, 把解析到的数据保存到 out 中
-	in := make(chan Request)
+	// 因为所有的 Request 队列都已经在 Scheduler 中实现了, 这里就不用再生成 request channel 了
+	// in := make(chan Request)
+
 	out := make(chan ParseResult)
 
 	// 把创建的 in channel 保存到 Scheduler 中
-	engine.Scheduler.ConfigureWorkerChan(in)
+	// engine.Scheduler.ConfigureWorkerChan(in)
+	// 此时就不再是 runQueuedConcurrentEngine 了, 而是运行 Scheduler
+	// Scheduler 会创建 workerChan
+	engine.Scheduler.Run()
 
 	// 4. 创建 Worker
 	for i := 0; i < engine.WorkerCount; i++ {
 		// 创建一个 Worker
-		createWorker(in, out)
+		// 因为 Request 队列是在 Scheduler 中的, 要把 Scheduler 传递给 createWorker
+		createWorker(engine.Scheduler, out)
 	}
 
 	// 1. 调用 Scheduler 中的方法, 将接收到的所有 Request 添加到队列中
@@ -74,9 +82,17 @@ func (engine *ConcurrentEngine) Run(seeds ...Request) {
 }
 
 // todo 是不是叫 doWork 更好点
-func createWorker(in chan Request, out chan ParseResult) {
+func createWorker(s iScheduler, out chan ParseResult) {
+	// 每个 worker 都创建一个自己的 channel
+	in := make(chan Request)
+
 	go func() {
 		for {
+			// tell scheduler i'm ready
+			// 调用 WorkerReady 时, 把 workerChan 传递过去, 再把 workerChan 保存到 Scheduler 的 workerQ 中
+			// 如果有 request 发送给了 workerChan, 就会继续执行下面的操作
+			s.WorkerReady(in)
+
 			// 从 in channel 中取出 request, 交给 worker 处理, 并把 worker 处理的结果送入到 out 中
 			request := <-in
 			// 可以使用 simple engine 中的 worker 来发送请求, 处理响应

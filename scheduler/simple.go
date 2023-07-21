@@ -7,6 +7,16 @@ type SimpleScheduler struct {
 	workerChan chan engine.Request
 }
 
+func (s *SimpleScheduler) WorkerReady(requests chan engine.Request) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (s *SimpleScheduler) Run() {
+	// TODO implement me
+	panic("implement me")
+}
+
 // Submit 实现 iScheduler 中的方法
 func (s *SimpleScheduler) Submit(request engine.Request) {
 	// send request down to worker chan
