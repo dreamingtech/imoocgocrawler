@@ -42,6 +42,20 @@ func (engine *ConcurrentEngine) Run(seeds ...Request) {
 		engine.Scheduler.Submit(r)
 	}
 
+	// 循环等待出现的原因及解决方法
+	/*
+		Engine 通过函数调用把 request 提交给 Scheculer, `engine.Scheduler.Submit(r)`,
+		Scheduler 通过向 workerChan 中发送 request 来实现任务的分发, `s.workerChan <- request`
+		Scheduler 向 workerChan 中发送数据成功的前提是 有一个空闲的 worker 在等待从 workerChan 中收取 request, `request := <-in`
+		worker 等待从 workerChan 中收取 request 的前提是 `把上一件事情做完`, 即把上一次请求中解析到的 request 和 item 发送给 engine,
+		engine 再调用 Scheduler 向 workerChan 中发送 request, `out <- result`,
+		但向 workerChan 中发送请求成功的前提是要有一个空闲的 Worker, 这样就形成了一个循环等待
+		所以前 10 个请求发送出去之后, 程序就会陷入到循环等待中, 也就是卡死了
+		只需要使用 goroutine 把向 workerChan 中提交 request 的操作变成异步的, 就解决了以上问题
+		此时, engine 再从 out 中取数据, `result := <-out`, 提交给 Scheduler 时, `engine.Scheduler.Submit(request)`,
+		因为 Submit 变成了协程, 即异步的方式执行, 就不会再出现循环等待的问题了
+	*/
+
 	// 从 Out Channel 中取数据
 	for {
 		result := <-out
