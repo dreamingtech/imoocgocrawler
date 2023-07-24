@@ -23,7 +23,10 @@ func ParseCityList(html []byte) engine.ParseResult {
 		// m[2] 的类型是 []byte,
 		// 打印时, 会打印出 byte 数组的地址, 而不是字符串, 所以需要转换成字符串
 		// 为方便打印时区分, 在前面加上 "City "
-		parsedResult.Items = append(parsedResult.Items, "City "+string(m[2]))
+
+		// 只保存对我们有价值的 item, 后续保存到数据库中, 如用户的 Profile,
+		// 就不用提取到 City 名字了, 可以使用日志来记录城市信息
+		// parsedResult.Items = append(parsedResult.Items, "City "+string(m[2]))
 
 		// 对于提取到的每一个 url, 都生成一个 Request
 		parsedResult.Requests = append(parsedResult.Requests, engine.Request{

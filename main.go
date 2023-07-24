@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/dreamingtech/imoocgocrawler/engine"
 	parser "github.com/dreamingtech/imoocgocrawler/parser/zhenai"
+	"github.com/dreamingtech/imoocgocrawler/persist"
 	"github.com/dreamingtech/imoocgocrawler/scheduler"
 )
 
@@ -33,6 +34,8 @@ func runQueuedSchedulerConcurrentEngine() {
 		Scheduler: &scheduler.QueuedScheduler{},
 		// 设置运行的 worker 数量
 		WorkerCount: 100,
+		// 直接调用 ItemSaver, 返回 ItemChan
+		ItemChan: persist.ItemSaver(),
 	}
 	concurrentEngine.Run(engine.Request{
 		Url:        "http://localhost:8080/mock/www.zhenai.com/zhenghun",

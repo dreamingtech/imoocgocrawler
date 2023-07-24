@@ -1,7 +1,6 @@
 package engine
 
 import (
-	model "github.com/dreamingtech/imoocgocrawler/model/zhenai"
 	"log"
 )
 
@@ -9,6 +8,8 @@ type ConcurrentEngine struct {
 	// 3. Engine.Scheduler
 	Scheduler   iScheduler
 	WorkerCount int
+	// 定义 item channel, item 可以是任意类型的数据
+	ItemChan chan interface{}
 }
 
 // 2. iScheduler 接口, 实现 Submit 方法
@@ -93,17 +94,14 @@ func (engine *ConcurrentEngine) Run(seeds ...Request) {
 		因为 Submit 变成了协程, 即异步的方式执行, 就不会再出现循环等待的问题了
 	*/
 
-	// 添加计数器, 记录提取到的 item 的数量
-	profileCount := 0
 	// 从 Out Channel 中取数据
 	for {
 		result := <-out
 		for _, item := range result.Items {
-			// 只记录 Profile 类型的 item 数量
-			if _, ok := item.(model.Profile); ok {
-				log.Printf("Got profile: #%d: %v", profileCount, item)
-				profileCount++
-			}
+			// 直接把 item  中
+			go func(i interface{}) {
+				engine.ItemChan <- i
+			}(item)
 		}
 
 		// 把 result 中的请求提交给 Scheduler

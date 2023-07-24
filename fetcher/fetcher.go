@@ -31,7 +31,7 @@ func determineEncoding(reader *bufio.Reader) encoding.Encoding {
 
 // 添加限速器, 以免抓取过快导致被反爬
 // 100 毫秒, 即 10个请求/s, 10 ms, 即 100个请求/s
-var rateLimiter = time.Tick(10 * time.Millisecond)
+var rateLimiter = time.Tick(1 * time.Millisecond)
 
 func Fetch(url string) ([]byte, error) {
 	// 多个 worker 都会调用这同一个 Fetch 完成发送请求的工作,
