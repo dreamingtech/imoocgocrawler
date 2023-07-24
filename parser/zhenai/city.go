@@ -5,12 +5,15 @@ import (
 	"regexp"
 )
 
-const cityRe = `<a href="([^<>"]+album\.zhenai\.com/u/[0-9]+)"[^>]*>([^<]+)</a>`
+// 提取用户 url
+var profileRe = regexp.MustCompile(`<a href="([^<>"]+album\.zhenai\.com/u/[0-9]+)"[^>]*>([^<]+)</a>`)
+
+// 提取下一页 url
+var cityUrlRe = regexp.MustCompile(`href="([^<>"]+www\.zhenai\.com/zhenghun/[^"]+)"`)
 
 func ParseCity(html []byte) engine.ParseResult {
 
-	re := regexp.MustCompile(cityRe)
-	matches := re.FindAllSubmatch(html, -1)
+	matches := profileRe.FindAllSubmatch(html, -1)
 
 	parsedResult := engine.ParseResult{}
 
@@ -39,10 +42,22 @@ func ParseCity(html []byte) engine.ParseResult {
 			ParserFunc: func(bytes []byte) engine.ParseResult {
 				// 会出现所有用户的名字都是最后一个用户的名字的问题
 				// return ParseProfile(bytes, string(m[2]))
-				return ParseProfile(bytes, name)
+				// return ParseProfile(bytes, name)
+				// todo 测试, 不抓取用户详情页
+				return engine.NilParser(bytes)
 			},
 		})
 	}
+
+	// 提取下一页 url, 页脚中的类似页面
+	matches = cityUrlRe.FindAllSubmatch(html, -1)
+	for _, m := range matches {
+		parsedResult.Requests = append(parsedResult.Requests, engine.Request{
+			Url:        string(m[1]),
+			ParserFunc: ParseCity,
+		})
+	}
+
 	return parsedResult
 
 }
