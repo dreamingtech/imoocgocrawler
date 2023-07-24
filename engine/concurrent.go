@@ -18,9 +18,30 @@ type iScheduler interface {
 	// 此队列即为 Run 中创建的 in channel
 	// 为了能把外部创建的队列添加到 Scheduler 中, 要添加一个方法,
 	// 通过此方法把外部创建的 channel 赋值给 Scheduler
-	ConfigureWorkerChan(chan Request)
-	WorkerReady(chan Request)
+	// ConfigureWorkerChan(chan Request)
+
+	// GetWorkerChan 统一 simple scheduler 和 queued scheduler 的代码
+	// simple scheduler 和 queued scheduler 的主要区别是:
+	// simple scheduler 是所有的 worker 共用一个 worker channel,
+	// 使用 ConfigureWorkerChan 来设置这个统一的 worker channel.
+	// queued scheduler 是每个 worker 有自己的 worker channel
+	// 又有一个总的 worker channel 保存所有的 worker channel,
+	// 所以 queued scheduler 不需要 ConfigureWorkerChan 来设置 worker channel.
+	// 但是使用同一个 workerChan 还是每一个 worker 有自己的 workerChan, 这是属于 scheduler 的功能,
+	// 应该 scheduler 中完成 workerChan 的创建和配置, 向 scheduler 提交 request 的时候,
+	// 向 scheduler 要一个 workerChan, 由 scheduler 确定使用的 workerChan
+	GetWorkerChan() chan Request
+
+	// iReadyNotifier 使用接口组合, 把 ReadyNotifier 接口嵌入到 iScheduler 接口中
+	iReadyNotifier
+	// WorkerReady(chan Request)
 	Run()
+}
+
+// ReadyNotifier 的作用: iScheduler 中的 4 个方法, 比较多, 可以把 WorkerReady 方法提取成一个新接口
+// 此时接口的实现者不需要修改, 就已经实现了这两个接口中的所有方法, 也就实现了这两个接口
+type iReadyNotifier interface {
+	WorkerReady(chan Request)
 }
 
 func (engine *ConcurrentEngine) Run(seeds ...Request) {
@@ -40,9 +61,11 @@ func (engine *ConcurrentEngine) Run(seeds ...Request) {
 
 	// 4. 创建 Worker
 	for i := 0; i < engine.WorkerCount; i++ {
+		// 创建 worker 时, 向 Scheduler "要" 一个 workerChan
+		workerChan := engine.Scheduler.GetWorkerChan()
 		// 创建一个 Worker
 		// 因为 Request 队列是在 Scheduler 中的, 要把 Scheduler 传递给 createWorker
-		createWorker(engine.Scheduler, out)
+		createWorker(engine.Scheduler, workerChan, out)
 	}
 
 	// 1. 调用 Scheduler 中的方法, 将接收到的所有 Request 添加到队列中
@@ -82,16 +105,18 @@ func (engine *ConcurrentEngine) Run(seeds ...Request) {
 }
 
 // todo 是不是叫 doWork 更好点
-func createWorker(s iScheduler, out chan ParseResult) {
+func createWorker(ready iReadyNotifier, in chan Request, out chan ParseResult) {
 	// 每个 worker 都创建一个自己的 channel
-	in := make(chan Request)
+	// workerChan 是用来对 Request 进行分发调度的, 是 Scheduler 的功能, 所以不应该在 engine 中创建
+	// 不再是创建 worker 的时候创建自己的 channel, 而是在 scheduler 中创建
+	// in := make(chan Request)
 
 	go func() {
 		for {
 			// tell scheduler i'm ready
 			// 调用 WorkerReady 时, 把 workerChan 传递过去, 再把 workerChan 保存到 Scheduler 的 workerQ 中
 			// 如果有 request 发送给了 workerChan, 就会继续执行下面的操作
-			s.WorkerReady(in)
+			ready.WorkerReady(in)
 
 			// 从 in channel 中取出 request, 交给 worker 处理, 并把 worker 处理的结果送入到 out 中
 			request := <-in

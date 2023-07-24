@@ -13,6 +13,11 @@ type QueuedScheduler struct {
 	workerChan chan chan engine.Request
 }
 
+func (s *QueuedScheduler) GetWorkerChan() chan engine.Request {
+	// queuedScheduler 中每一个 Request 都会创建一个 channel
+	return make(chan engine.Request)
+}
+
 // WorkerReady 外界调用此方法通知 Scheduler 有一个 worker ready 了, 可以去接收 Request 了
 func (s *QueuedScheduler) WorkerReady(worker chan engine.Request) {
 	s.workerChan <- worker
@@ -20,11 +25,6 @@ func (s *QueuedScheduler) WorkerReady(worker chan engine.Request) {
 
 func (s *QueuedScheduler) Submit(request engine.Request) {
 	s.requestChan <- request
-}
-
-func (s *QueuedScheduler) ConfigureWorkerChan(requests chan engine.Request) {
-	// TODO implement me
-	panic("implement me")
 }
 
 func (s *QueuedScheduler) Run() {
@@ -54,6 +54,7 @@ func (s *QueuedScheduler) Run() {
 				activeWorker = workerQ[0]
 			}
 
+			// 使用了 select 之后, 所有对 chan 的操作都放在 select 中执行
 			select {
 			case request := <-s.requestChan:
 				requestQ = append(requestQ, request)

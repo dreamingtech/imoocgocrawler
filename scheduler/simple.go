@@ -7,14 +7,16 @@ type SimpleScheduler struct {
 	workerChan chan engine.Request
 }
 
+func (s *SimpleScheduler) GetWorkerChan() chan engine.Request {
+	return s.workerChan
+}
+
 func (s *SimpleScheduler) WorkerReady(requests chan engine.Request) {
-	// TODO implement me
-	panic("implement me")
 }
 
 func (s *SimpleScheduler) Run() {
-	// TODO implement me
-	panic("implement me")
+	// 在 scheduler.Run 中创建一个所有 worker 公用的 channel
+	s.workerChan = make(chan engine.Request)
 }
 
 // Submit 实现 iScheduler 中的方法
