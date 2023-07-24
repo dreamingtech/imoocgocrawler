@@ -32,17 +32,19 @@ func runQueuedSchedulerConcurrentEngine() {
 	concurrentEngine := engine.ConcurrentEngine{
 		Scheduler: &scheduler.QueuedScheduler{},
 		// 设置运行的 worker 数量
-		WorkerCount: 10,
+		WorkerCount: 100,
 	}
-	// concurrentEngine.Run(engine.Request{
-	// 	Url:        "http://localhost:8080/mock/www.zhenai.com/zhenghun",
-	// 	ParserFunc: parser.ParseCityList,
-	// })
-	// todo 只抓取一个城市的数据, 便于测试
 	concurrentEngine.Run(engine.Request{
-		Url:        "https://www.zhenai.com/zhenghun/shanghai",
-		ParserFunc: parser.ParseCity,
+		Url:        "http://localhost:8080/mock/www.zhenai.com/zhenghun",
+		ParserFunc: parser.ParseCityList,
 	})
+
+	// 只抓取一个城市的数据, 便于测试
+	// concurrentEngine.Run(engine.Request{
+	// 	// Url:        "https://www.zhenai.com/zhenghun/shanghai",
+	// 	Url:        "http://localhost:8080/mock/www.zhenai.com/zhenghun/shanghai",
+	// 	ParserFunc: parser.ParseCity,
+	// })
 }
 
 func main() {

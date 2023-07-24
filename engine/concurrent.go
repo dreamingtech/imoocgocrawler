@@ -1,6 +1,7 @@
 package engine
 
 import (
+	model "github.com/dreamingtech/imoocgocrawler/model/zhenai"
 	"log"
 )
 
@@ -70,6 +71,11 @@ func (engine *ConcurrentEngine) Run(seeds ...Request) {
 
 	// 1. 调用 Scheduler 中的方法, 将接收到的所有 Request 添加到队列中
 	for _, r := range seeds {
+		// 因为去重首先要保存已经 "见到" 过的 url, 所以也要对 seeds 进行去重
+		if isDuplicate(r.Url) {
+			log.Printf("Duplicate request: %s", r.Url)
+			continue
+		}
 		engine.Scheduler.Submit(r)
 	}
 
@@ -88,17 +94,24 @@ func (engine *ConcurrentEngine) Run(seeds ...Request) {
 	*/
 
 	// 添加计数器, 记录提取到的 item 的数量
-	itemCount := 0
+	profileCount := 0
 	// 从 Out Channel 中取数据
 	for {
 		result := <-out
 		for _, item := range result.Items {
-			log.Printf("Got item: #%d: %v", itemCount, item)
-			itemCount++
+			// 只记录 Profile 类型的 item 数量
+			if _, ok := item.(model.Profile); ok {
+				log.Printf("Got profile: #%d: %v", profileCount, item)
+				profileCount++
+			}
 		}
 
 		// 把 result 中的请求提交给 Scheduler
 		for _, request := range result.Requests {
+			if isDuplicate(request.Url) {
+				log.Printf("Duplicate request: %s", request.Url)
+				continue
+			}
 			engine.Scheduler.Submit(request)
 		}
 	}
@@ -128,4 +141,16 @@ func createWorker(ready iReadyNotifier, in chan Request, out chan ParseResult) {
 			out <- result
 		}
 	}()
+}
+
+// 要想去重，就需要把已经访问过的 url 保存起来
+var visitedUrls = make(map[string]bool)
+
+// isDuplicate 用来判断 url 是否已经访问过
+func isDuplicate(url string) bool {
+	if visitedUrls[url] {
+		return true
+	}
+	visitedUrls[url] = true
+	return false
 }

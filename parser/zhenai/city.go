@@ -42,9 +42,9 @@ func ParseCity(html []byte) engine.ParseResult {
 			ParserFunc: func(bytes []byte) engine.ParseResult {
 				// 会出现所有用户的名字都是最后一个用户的名字的问题
 				// return ParseProfile(bytes, string(m[2]))
-				// return ParseProfile(bytes, name)
-				// todo 测试, 不抓取用户详情页
-				return engine.NilParser(bytes)
+				return ParseProfile(bytes, name)
+				// 测试, 不抓取用户详情页
+				// return engine.NilParser(bytes)
 			},
 		})
 	}

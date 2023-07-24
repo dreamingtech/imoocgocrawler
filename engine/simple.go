@@ -2,6 +2,7 @@ package engine
 
 import (
 	"github.com/dreamingtech/imoocgocrawler/fetcher"
+	model "github.com/dreamingtech/imoocgocrawler/model/zhenai"
 	"log"
 )
 
@@ -28,7 +29,7 @@ func (engine SimpleEngine) Run(seeds ...Request) {
 		requests = append(requests, r)
 	}
 
-	itemCount := 0
+	profileCount := 0
 
 	for len(requests) > 0 {
 		// 取出来第一个 Request
@@ -45,8 +46,11 @@ func (engine SimpleEngine) Run(seeds ...Request) {
 
 		// 打印解析结果中的 Items
 		for _, item := range parseResult.Items {
-			log.Printf("Got item: #%d: %v", itemCount, item)
-			itemCount++
+			// 只记录 Profile 类型的 item 数量
+			if _, ok := item.(model.Profile); ok {
+				log.Printf("Got profile: #%d: %v", profileCount, item)
+				profileCount++
+			}
 		}
 	}
 }
