@@ -17,8 +17,10 @@ func ParseCity(html []byte) engine.ParseResult {
 
 	parsedResult := engine.ParseResult{}
 
+	// todo city.go 和 profile.go 中的代码有很多重复, 可以抽取出来
 	for _, m := range matches {
 
+		url := string(m[1])
 		// 解决每页所有用户提取到的都是最后一个用户的名字的问题
 		// 循环中共用一个变量, 会导致变量的值被覆盖
 		// ParseProfile 中传入的 m[2] 参数不是立即执行的, 而是等循环结束, 真正抓取到用户详情页时才执行
@@ -35,7 +37,7 @@ func ParseCity(html []byte) engine.ParseResult {
 
 		// 对于提取到的每一个 url, 都生成一个 Request
 		parsedResult.Requests = append(parsedResult.Requests, engine.Request{
-			Url: string(m[1]),
+			Url: url,
 			// nil 可以编译通过, 但不能调用, 所以这里不能写成 nil, 而是定义一个空的解析函数
 			// ParserFunc: nil,
 			// 把列表页提取到的 Name 传递给下一层解析函数 ParseProfile, 而不是在详情页中解析用户的 Name
@@ -44,7 +46,7 @@ func ParseCity(html []byte) engine.ParseResult {
 			ParserFunc: func(bytes []byte) engine.ParseResult {
 				// 会出现所有用户的名字都是最后一个用户的名字的问题
 				// return ParseProfile(bytes, string(m[2]))
-				return ParseProfile(bytes, name)
+				return ParseProfile(bytes, url, name)
 				// 测试, 不抓取用户详情页
 				// return engine.NilParser(bytes)
 			},

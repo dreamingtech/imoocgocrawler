@@ -26,18 +26,19 @@ func TestParseCityList(t *testing.T) {
 		t.Errorf("result should have %d requests; but had %d", resultSize, len(result.Requests))
 	}
 
-	if len(result.Items) != resultSize {
-		t.Errorf("result should have %d items; but had %d", resultSize, len(result.Items))
-	}
+	// ParseCityList 中已经不再提取出 item 了, 所以也不用再测试 item 了
+	// if len(result.Items) != resultSize {
+	// 	t.Errorf("result should have %d items; but had %d", resultSize, len(result.Items))
+	// }
 
 	expectedUrls := []string{
 		"http://www.zhenai.com/zhenghun/aba",
 		"http://www.zhenai.com/zhenghun/akesu",
 		"http://www.zhenai.com/zhenghun/alashanmeng",
 	}
-	expectedCities := []string{
-		"City 阿坝", "City 阿克苏", "City 阿拉善盟",
-	}
+	// expectedCities := []string{
+	// 	"City 阿坝", "City 阿克苏", "City 阿拉善盟",
+	// }
 
 	for i, url := range expectedUrls {
 		if result.Requests[i].Url != url {
@@ -45,10 +46,10 @@ func TestParseCityList(t *testing.T) {
 		}
 	}
 
-	for i, city := range expectedCities {
-		// items 中的元素类型是 interface{}, 需要使用类型断言
-		if result.Items[i].(string) != city {
-			t.Errorf("expected city #%d: %s; but was %s", i, city, result.Items[i].(string))
-		}
-	}
+	// for i, city := range expectedCities {
+	// 	// items 中的元素类型是 interface{}, 需要使用类型断言
+	// 	if result.Items[i].(string) != city {
+	// 		t.Errorf("expected city #%d: %s; but was %s", i, city, result.Items[i].(string))
+	// 	}
+	// }
 }

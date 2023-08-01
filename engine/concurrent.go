@@ -9,7 +9,7 @@ type ConcurrentEngine struct {
 	Scheduler   iScheduler
 	WorkerCount int
 	// 定义 item channel, item 可以是任意类型的数据
-	ItemChan chan interface{}
+	ItemChan chan Item
 }
 
 // 2. iScheduler 接口, 实现 Submit 方法
@@ -99,7 +99,7 @@ func (engine *ConcurrentEngine) Run(seeds ...Request) {
 		result := <-out
 		for _, item := range result.Items {
 			// 直接把 item  中
-			go func(i interface{}) {
+			go func(i Item) {
 				engine.ItemChan <- i
 			}(item)
 		}

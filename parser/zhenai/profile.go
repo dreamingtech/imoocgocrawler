@@ -22,6 +22,7 @@ var carRe = regexp.MustCompile(`<td><span class="label">是否购车：</span><s
 
 // 猜你喜欢
 var guessRe = regexp.MustCompile(`<a class="exp-user-name"[^>]*href="([^<>"]+album.zhenai.com/u/[\d]+)"[^>]*>([^<]+)</a>`)
+var idUrlRe = regexp.MustCompile(`[^><]*album.zhenai.com/u/([\d]+)`)
 
 func extractString(contents []byte, re *regexp.Regexp) string {
 	match := re.FindSubmatch(contents)
@@ -34,7 +35,7 @@ func extractString(contents []byte, re *regexp.Regexp) string {
 }
 
 // ParseProfile 解析用户信息
-func ParseProfile(html []byte, name string) engine.ParseResult {
+func ParseProfile(html []byte, url, name string) engine.ParseResult {
 
 	profile := model.Profile{}
 	profile.Name = name
@@ -64,16 +65,24 @@ func ParseProfile(html []byte, name string) engine.ParseResult {
 	matches := guessRe.FindAllSubmatch(html, -1)
 
 	result := engine.ParseResult{
-		Items: []interface{}{profile},
+		Items: []engine.Item{
+			{
+				Url:     url,
+				Type:    "zhenai",
+				Id:      extractString([]byte(url), idUrlRe),
+				Payload: profile,
+			},
+		},
 	}
 
 	// 猜你喜欢提取到的用户信息添加到请求队列中
 	for _, m := range matches {
+		url := string(m[1])
 		name := string(m[2])
 		result.Requests = append(result.Requests, engine.Request{
 			Url: string(m[1]),
 			ParserFunc: func(c []byte) engine.ParseResult {
-				return ParseProfile(c, name)
+				return ParseProfile(c, url, name)
 			},
 		})
 	}
