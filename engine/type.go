@@ -1,6 +1,9 @@
 package engine
 
-type ParserFunc func([]byte) ParseResult
+// ParserFunc 是一个公共的解析函数类型, url 也是一个公共的字段,
+// 不只在 ProfileParser 中有用, 其它所有的 Parser 都有可能会用到
+// 所以把 url 添加到公共的解析函数类型中
+type ParserFunc func(contents []byte, url string) ParseResult
 
 // Request 请求对象的封装
 type Request struct {

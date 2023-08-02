@@ -77,11 +77,12 @@ func ParseProfile(html []byte, url, name string) engine.ParseResult {
 
 	// 猜你喜欢提取到的用户信息添加到请求队列中
 	for _, m := range matches {
-		url := string(m[1])
-		name := string(m[2])
+		// name 的作用是防止循环中的变量被覆盖, 但现在 name 是给 ParseProfile 函数用的,
+		// 函数都是值传递, 所以这里不需要再定义 name 变量了
+		// name := string(m[2])
 		result.Requests = append(result.Requests, engine.Request{
 			Url:        string(m[1]),
-			ParserFunc: ProfileParser(name, url),
+			ParserFunc: ProfileParser(string(m[2])),
 		})
 	}
 
@@ -90,8 +91,8 @@ func ParseProfile(html []byte, url, name string) engine.ParseResult {
 
 // ProfileParser 包装 ParseProfile, 传递 name, url 参数,
 // 生成一个新的解析函数, 能够解析一段文本 []byte, 即 html 源码
-func ProfileParser(name string, url string) engine.ParserFunc {
-	return func(c []byte) engine.ParseResult {
+func ProfileParser(name string) engine.ParserFunc {
+	return func(c []byte, url string) engine.ParseResult {
 		return ParseProfile(c, url, name)
 	}
 }

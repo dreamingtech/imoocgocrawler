@@ -132,7 +132,7 @@ func createWorker(ready iReadyNotifier, in chan Request, out chan ParseResult) {
 			// 从 in channel 中取出 request, 交给 worker 处理, 并把 worker 处理的结果送入到 out 中
 			request := <-in
 			// 可以使用 simple engine 中的 worker 来发送请求, 处理响应
-			result, err := worker(request)
+			result, err := doWork(request)
 			if err != nil {
 				continue
 			}

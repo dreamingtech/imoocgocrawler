@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-func ItemSaver() (chan engine.Item, error) {
+func ItemSaver(index string) (chan engine.Item, error) {
 	client, err := elastic.NewClient(
 		elastic.SetURL("http://127.0.0.1:9200"),
 		// Must turn off sniff in docker
@@ -27,7 +27,7 @@ func ItemSaver() (chan engine.Item, error) {
 			log.Printf("ItemSaver got item #%d: %v", itemCount, item)
 			itemCount++
 
-			err := save(client, item)
+			err := save(client, index, item)
 			if err != nil {
 				log.Printf("ItemSaver: error saving item %v: %v", item, err)
 				continue
@@ -39,7 +39,7 @@ func ItemSaver() (chan engine.Item, error) {
 
 // 可以调用 http.Post 发送请求保存数据, 也可以使用 elasticsearch 的 api 保存数据
 // 为了能够测试已经保存的数据是否可以被取出来并被解析为 profile 的结构, 要返回保存到 es 时的 id
-func save(client *elastic.Client, item engine.Item) error {
+func save(client *elastic.Client, index string, item engine.Item) error {
 
 	// client.Index().Index("dating_profile").Type("zhenai").Id("abc").BodyJson(item).Do(context.Background())
 	// 不设置 id 时, es 会自动创建 id
@@ -53,7 +53,7 @@ func save(client *elastic.Client, item engine.Item) error {
 	}
 
 	indexService := client.Index().
-		Index("dating_profile").
+		Index(index).
 		Type(item.Type).
 		Id(item.Id).
 		BodyJson(item)

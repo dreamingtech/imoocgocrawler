@@ -33,8 +33,17 @@ func TestItemSaver(t *testing.T) {
 		},
 	}
 
+	client, err := elastic.NewClient(
+		elastic.SetURL("http://127.0.0.1:9200"),
+		elastic.SetSniff(false),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	const index = "dating_profile_test"
 	// 1. save item
-	err := save(expected)
+	err = save(client, index, expected)
 	if err != nil {
 		panic(err)
 	}
@@ -44,15 +53,9 @@ func TestItemSaver(t *testing.T) {
 	// todo Try to start up elasticsearch using docker go client
 	// 2. fetch item
 	// 从 es 中获取数据
-	client, err := elastic.NewClient(
-		elastic.SetURL("http://127.0.0.1:9200"),
-		elastic.SetSniff(false),
-	)
-	if err != nil {
-		panic(err)
-	}
+
 	resp, err := client.Get().
-		Index("dating_profile").
+		Index(index).
 		Type(expected.Type).Id(expected.Id).
 		Do(context.Background())
 
