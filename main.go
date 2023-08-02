@@ -29,13 +29,17 @@ func runConcurrentEngine() {
 }
 
 func runQueuedSchedulerConcurrentEngine() {
+	itemChan, err := persist.ItemSaver()
+	if err != nil {
+		panic(err)
+	}
 	// 因为是指针接收者, 必须要定义一个变量, 只有变量才可以取地址
 	concurrentEngine := engine.ConcurrentEngine{
 		Scheduler: &scheduler.QueuedScheduler{},
 		// 设置运行的 worker 数量
 		WorkerCount: 100,
 		// 直接调用 ItemSaver, 返回 ItemChan
-		ItemChan: persist.ItemSaver(),
+		ItemChan: itemChan,
 	}
 	concurrentEngine.Run(engine.Request{
 		Url:        "http://localhost:8080/mock/www.zhenai.com/zhenghun",

@@ -1,9 +1,11 @@
 package engine
 
+type ParserFunc func([]byte) ParseResult
+
 // Request 请求对象的封装
 type Request struct {
 	Url        string
-	ParserFunc func([]byte) ParseResult
+	ParserFunc ParserFunc
 }
 
 // ParseResult 用于存储解析后的数据

@@ -43,13 +43,7 @@ func ParseCity(html []byte) engine.ParseResult {
 			// 把列表页提取到的 Name 传递给下一层解析函数 ParseProfile, 而不是在详情页中解析用户的 Name
 			// 但 Request.ParserFunc 中没有 Name 参数, 所以这里使用函数式编程,
 			// 用一个匿名函数把 ParseProfile 进行一层包装, 并把 Name 传递给 ParseProfile
-			ParserFunc: func(bytes []byte) engine.ParseResult {
-				// 会出现所有用户的名字都是最后一个用户的名字的问题
-				// return ParseProfile(bytes, string(m[2]))
-				return ParseProfile(bytes, url, name)
-				// 测试, 不抓取用户详情页
-				// return engine.NilParser(bytes)
-			},
+			ParserFunc: ProfileParser(name, url),
 		})
 	}
 

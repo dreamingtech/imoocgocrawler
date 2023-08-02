@@ -80,12 +80,18 @@ func ParseProfile(html []byte, url, name string) engine.ParseResult {
 		url := string(m[1])
 		name := string(m[2])
 		result.Requests = append(result.Requests, engine.Request{
-			Url: string(m[1]),
-			ParserFunc: func(c []byte) engine.ParseResult {
-				return ParseProfile(c, url, name)
-			},
+			Url:        string(m[1]),
+			ParserFunc: ProfileParser(name, url),
 		})
 	}
 
 	return result
+}
+
+// ProfileParser 包装 ParseProfile, 传递 name, url 参数,
+// 生成一个新的解析函数, 能够解析一段文本 []byte, 即 html 源码
+func ProfileParser(name string, url string) engine.ParserFunc {
+	return func(c []byte) engine.ParseResult {
+		return ParseProfile(c, url, name)
+	}
 }
