@@ -1,4 +1,4 @@
-package frontend
+package view
 
 import (
 	"github.com/dreamingtech/imoocgocrawler/engine"
