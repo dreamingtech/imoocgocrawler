@@ -8,6 +8,7 @@ import (
 	"golang.org/x/net/context"
 	"net/http"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -33,6 +34,11 @@ func CreateSearchResultHandler(template string) SearchResultHandler {
 // ServeHTTP 处理类似请求 localhost:8888/search?q=男 已购房&from=20
 func (handler SearchResultHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	q := strings.TrimSpace(request.FormValue("q"))
+	// 如果在这里重写查询字符串, 重写后的查询字符串会被传递给 getSearchResult 方法
+	// 然后也会被传递给前端页面, 填充到搜索框中, 每次点击都会在原有的基础上添加 `Payload.` 前缀
+	// 搜索结果就不正确了, 所以应该在 getSearchResult 方法中重写查询字符串
+	// q = rewriteQueryString(q)
+
 	from, err := strconv.Atoi(request.FormValue("from"))
 	if err != nil {
 		from = 0
@@ -51,9 +57,12 @@ func (handler SearchResultHandler) ServeHTTP(writer http.ResponseWriter, request
 
 func (handler SearchResultHandler) getSearchResult(q string, from int) (model.SearchResult, error) {
 	var result model.SearchResult
+
 	resp, err := handler.client.
 		Search("dating_profile").
-		Query(elastic.NewQueryStringQuery(q)).
+		// Query(elastic.NewQueryStringQuery(q)).
+		// 重写查询字符串, 在搜索前重写查询字符串, 而填充到搜索框中的查询字符串依然是原来的 q
+		Query(elastic.NewQueryStringQuery(rewriteQueryString(q))).
 		From(from).
 		Do(context.Background())
 	if err != nil {
@@ -86,5 +95,11 @@ func (handler SearchResultHandler) getSearchResult(q string, from int) (model.Se
 
 	// elastic.NewQueryStringQuery(q) 会把 q 中的空格替换成 +, 例如 q=男 已购房 会变成 q=男+已购房
 	return result, nil
+}
 
+// rewriteQueryString 重写查询字符串
+// 用户要查询年龄小于 30 岁的, 要使用 Payload.Age:(<30), 希望用户输入的是 Age:(<30)
+func rewriteQueryString(q string) string {
+	re := regexp.MustCompile(`([A-Z][a-z]*):`)
+	return re.ReplaceAllString(q, "Payload.$1:")
 }
