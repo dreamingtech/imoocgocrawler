@@ -62,6 +62,7 @@ func (handler SearchResultHandler) getSearchResult(q string, from int) (model.Se
 
 	result.Hits = resp.TotalHits()
 	result.Start = from
+	result.Query = q
 
 	// Each 返回的是 []interface{}, 需要转换成 []engine.Item
 	// 两种解决方法, 一种是把 model.SearchResult.Items 的类型改成 []interface{}
