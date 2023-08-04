@@ -93,6 +93,12 @@ func (handler SearchResultHandler) getSearchResult(q string, from int) (model.Se
 	// 	}
 	// }
 
+	// result.PrevFrom 和 result.NextFrom 要放在 result.Items 赋值之后再计算, 否则 result.Items 的长度始终为 0
+	// 上一页的起始位置, 等于当前页的起始位置减去每页的条数
+	result.PrevFrom = result.Start - len(result.Items)
+	// 下一页的起始位置, 等于当前页的起始位置加上每页的条数
+	result.NextFrom = result.Start + len(result.Items)
+
 	// elastic.NewQueryStringQuery(q) 会把 q 中的空格替换成 +, 例如 q=男 已购房 会变成 q=男+已购房
 	return result, nil
 }
